@@ -1,14 +1,13 @@
 package weather
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/weather/api"
-	"github.com/weather/utils"
+	"github.com/weather/internal/service"
 
 	"github.com/gorilla/mux"
 )
@@ -55,8 +54,6 @@ func GetForecast(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var res ForecastResponse
-
 	params := map[string]string{
 		"latitude":  fmt.Sprintf("%f", lat),
 		"longitude": fmt.Sprintf("%f", log),
@@ -65,29 +62,8 @@ func GetForecast(w http.ResponseWriter, r *http.Request) {
 		params["current_weather"] = "true"
 	}
 
-	url := "https://api.open-meteo.com/v1/forecast"
-	utils.DoHTTPRequest(context.Background(), "GET", url, nil, params, nil, &res)
+	res := service.GetForecast(params)
 
 	api.JsonResponse(w, http.StatusOK, res)
 
-}
-
-type ForecastResponse struct {
-	Latitude             float64        `json:"latitude"`
-	Longitude            float64        `json:"longitude"`
-	GenerationtimeMs     float64        `json:"generationtime_ms"`
-	UtcOffsetSeconds     int            `json:"utc_offset_seconds"`
-	Timezone             string         `json:"timezone"`
-	TimezoneAbbreviation string         `json:"timezone_abbreviation"`
-	Elevation            float64        `json:"elevation"`
-	CurrentWeather       CurrentWeather `json:"current_weather,omitempty"`
-}
-
-type CurrentWeather struct {
-	Temperature   float64 `json:"temperature,omitempty"`
-	Windspeed     float64 `json:"windspeed,omitempty"`
-	Winddirection float64 `json:"winddirection,omitempty"`
-	Weathercode   int     `json:"weathercode,omitempty"`
-	IsDay         int     `json:"is_day,omitempty"`
-	Time          string  `json:"time,omitempty"`
 }
